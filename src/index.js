@@ -25,6 +25,10 @@ const triggerRelease = debounce(async () => {
   }
 }, 30000)
 
+app.get('/', (req, res) => {
+  res.send("OK")
+})
+
 app.post('/', (req, res) => {
   const body = req.body || ''
   const signature = req.headers['gcms-signature'] || ''
