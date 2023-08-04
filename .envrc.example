@@ -1,0 +1,4 @@
+export PORT=3000
+export HYGRAPH_SECRET=
+export HYGRAPH_SECRET_BYPASS=1
+export GITHUB_TOKEN=
