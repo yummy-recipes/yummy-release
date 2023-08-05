@@ -1,9 +1,11 @@
 import express from "express"
+import bodyParser from 'body-parser'
 import { Octokit } from "@octokit/rest"
 import { verifyWebhookSignature } from '@hygraph/utils'
 import debounce from "lodash.debounce"
 
 const app = express()
+app.use(bodyParser.json())
 
 const secret = process.env.HYGRAPH_SECRET
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
@@ -30,12 +32,12 @@ app.get('/', (req, res) => {
 })
 
 app.post('/', (req, res) => {
-  const rawPayload = req.body || ''
+  const body = req.body || {}
   const signature = req.headers['gcms-signature'] || ''
 
   let isValid = false
   try {
-    isValid = Boolean(process.env.HYGRAPH_SECRET_BYPASS) || verifyWebhookSignature({ rawPayload, signature, secret });
+    isValid = Boolean(process.env.HYGRAPH_SECRET_BYPASS) || verifyWebhookSignature({ body, signature, secret });
   } catch (e) {
     console.error(e);
   }
