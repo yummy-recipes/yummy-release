@@ -30,12 +30,12 @@ app.get('/', (req, res) => {
 })
 
 app.post('/', (req, res) => {
-  const body = req.body || ''
+  const rawPayload = req.body || ''
   const signature = req.headers['gcms-signature'] || ''
 
   let isValid = false
   try {
-    isValid = Boolean(process.env.HYGRAPH_SECRET_BYPASS) || verifyWebhookSignature({ body, signature, secret });
+    isValid = Boolean(process.env.HYGRAPH_SECRET_BYPASS) || verifyWebhookSignature({ rawPayload, signature, secret });
   } catch (e) {
     console.error(e);
   }
