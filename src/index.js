@@ -1,56 +1,81 @@
-import express from "express"
-import bodyParser from 'body-parser'
-import { Octokit } from "@octokit/rest"
-import { verifyWebhookSignature } from '@hygraph/utils'
-import debounce from "lodash.debounce"
+import express from "express";
+import bodyParser from "body-parser";
+import { Octokit } from "@octokit/rest";
+import { verifyWebhookSignature } from "@hygraph/utils";
+import debounce from "lodash.debounce";
+import Statsig from "statsig-node";
 
-const app = express()
-app.use(bodyParser.json())
+const app = express();
+app.use(bodyParser.json());
+const user = { userID: "yummy-release-service" };
 
-const secret = process.env.HYGRAPH_SECRET
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN
+const STATSIG_SECRET_KEY = process.env.STATSIG_SECRET_KEY;
+const STATSIG_TIER = process.env.STATSIG_TIER || "production";
+const HYGRAPH_SECRET_BYPASS = process.env.HYGRAPH_SECRET_BYPASS;
+const secret = process.env.HYGRAPH_SECRET;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 const octokit = new Octokit({
   auth: GITHUB_TOKEN,
-})
+});
 
 const triggerRelease = debounce(async () => {
   try {
     await octokit.rest.actions.createWorkflowDispatch({
-      owner: 'yummy-recipes',
-      repo: 'yummy-next',
-      workflow_id: 'deploy.yml',
-      ref: 'master'
-    })
+      owner: "yummy-recipes",
+      repo: "yummy-next",
+      workflow_id: "deploy.yml",
+      ref: "master",
+    });
+    Statsig.logEvent(user, "succeed release_webhook_trigger");
   } catch (e) {
-    console.error(e)
+    Statsig.logEvent(user, "failed release_webhook_trigger", {
+      reason: "exception",
+    });
+    console.error(e);
   }
-}, 30000)
+}, 30000);
 
-app.get('/', (req, res) => {
-  res.send("OK")
-})
+app.get("/", (req, res) => {
+  res.send("OK");
+  Statsig.logEvent(user, "succeed release_webhook_healthcheck");
+});
 
-app.post('/', (req, res) => {
-  const body = req.body || {}
-  const signature = req.headers['gcms-signature'] || ''
+app.post("/", (req, res) => {
+  const body = req.body || {};
+  const signature = req.headers["gcms-signature"] || "";
 
-  let isValid = false
+  let isValid = false;
   try {
-    isValid = Boolean(process.env.HYGRAPH_SECRET_BYPASS) || verifyWebhookSignature({ body, signature, secret });
+    isValid = Boolean(HYGRAPH_SECRET_BYPASS)
+      ? true
+      : verifyWebhookSignature({ body, signature, secret });
   } catch (e) {
+    Statsig.logEvent(user, "failed release_webhook_verification", {
+      reason: "exception",
+    });
     console.error(e);
   }
 
   if (!isValid) {
-    return res.status(401).send('Invalid signature');
+    Statsig.logEvent(user, "failed release_webhook_verification", {
+      reason: "invalid_signature",
+    });
+    return res.status(401).send("Invalid signature");
   }
 
-  triggerRelease()
-  res.send("OK")
-})
+  triggerRelease();
+  Statsig.logEvent(user, "started release_webhook_trigger");
+  res.send("OK");
+});
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3000;
+
+await Statsig.initialize(
+  STATSIG_SECRET_KEY,
+  { environment: { tier: STATSIG_TIER } } // optional, if not set, for >v6.0.0, sdk will default to be production
+);
+
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`)
-})
+  console.log(`Server is running on port ${port}`);
+});

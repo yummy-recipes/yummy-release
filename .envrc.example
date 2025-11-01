@@ -2,3 +2,5 @@ export PORT=3000
 export HYGRAPH_SECRET=
 export HYGRAPH_SECRET_BYPASS=1
 export GITHUB_TOKEN=
+export STATSIG_TIER=development
+export STATSIG_SECRET_KEY=
