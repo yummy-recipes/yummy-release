@@ -4,16 +4,26 @@ import { Octokit } from "@octokit/rest";
 import { verifyWebhookSignature } from "@hygraph/utils";
 import debounce from "lodash.debounce";
 import Statsig from "statsig-node";
+import * as Sentry from "@sentry/node";
+
+const STATSIG_SECRET_KEY = process.env.STATSIG_SECRET_KEY;
+const APP_ENVIRONMENT = process.env.APP_ENVIRONMENT || "production";
+const HYGRAPH_SECRET_BYPASS = process.env.HYGRAPH_SECRET_BYPASS;
+const secret = process.env.HYGRAPH_SECRET;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const SENTRY_DSN = process.env.SENTRY_DSN;
+
+Sentry.init({
+  dsn: SENTRY_DSN,
+  // Setting this option to true will send default PII data to Sentry.
+  // For example, automatic IP address collection on events
+  sendDefaultPii: true,
+  environment: process.env.APP_ENVIRONMENT || "production",
+});
 
 const app = express();
 app.use(bodyParser.json());
 const user = { userID: "yummy-release-service" };
-
-const STATSIG_SECRET_KEY = process.env.STATSIG_SECRET_KEY;
-const STATSIG_TIER = process.env.STATSIG_TIER || "production";
-const HYGRAPH_SECRET_BYPASS = process.env.HYGRAPH_SECRET_BYPASS;
-const secret = process.env.HYGRAPH_SECRET;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 const octokit = new Octokit({
   auth: GITHUB_TOKEN,
@@ -32,6 +42,7 @@ const triggerRelease = debounce(async () => {
     Statsig.logEvent(user, "failed release_webhook_trigger", {
       reason: "exception",
     });
+    Sentry.captureException(e);
     console.error(e);
   }
 }, 30000);
@@ -54,6 +65,7 @@ app.post("/", (req, res) => {
     Statsig.logEvent(user, "failed release_webhook_verification", {
       reason: "exception",
     });
+    Sentry.captureException(e);
     console.error(e);
   }
 
@@ -73,7 +85,7 @@ const port = process.env.PORT || 3000;
 
 await Statsig.initialize(
   STATSIG_SECRET_KEY,
-  { environment: { tier: STATSIG_TIER } } // optional, if not set, for >v6.0.0, sdk will default to be production
+  { environment: { tier: APP_ENVIRONMENT } } // optional, if not set, for >v6.0.0, sdk will default to be production
 );
 
 app.listen(port, () => {
