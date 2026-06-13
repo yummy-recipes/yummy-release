@@ -1,4 +1,5 @@
 import express from "express";
+import assert from "node:assert";
 import bodyParser from "body-parser";
 import { Octokit } from "@octokit/rest";
 import { verifyWebhookSignature } from "@hygraph/utils";
@@ -47,17 +48,31 @@ const triggerRelease = debounce(async () => {
   }
 }, 30000);
 
+const validateSignature = (signature) => {
+  const [rawSign, rawEnv, rawTimestamp] = signature.split(", ");
+
+  assert(rawSign, "Missing rawSign in signature");
+  assert(rawEnv, "Missing rawEnv in signature");
+  assert(rawTimestamp, "Missing rawTimestamp in signature");
+};
+
 app.get("/", (req, res) => {
   res.send("OK");
   Statsig.logEvent(user, "succeed release_webhook_healthcheck");
 });
 
 app.post("/", (req, res) => {
-  const body = req.body || {};
-  const signature = req.headers["gcms-signature"] || "";
+  const body = req.body;
+  const signature = req.headers["gcms-signature"];
 
   let isValid = false;
   try {
+    assert(signature, "Missing signature");
+    assert(body, "Missing body");
+    assert(secret, "Missing secret");
+
+    validateSignature(signature);
+
     isValid = Boolean(HYGRAPH_SECRET_BYPASS)
       ? true
       : verifyWebhookSignature({ body, signature, secret });
@@ -85,7 +100,7 @@ const port = process.env.PORT || 3000;
 
 await Statsig.initialize(
   STATSIG_SECRET_KEY,
-  { environment: { tier: APP_ENVIRONMENT } } // optional, if not set, for >v6.0.0, sdk will default to be production
+  { environment: { tier: APP_ENVIRONMENT } }, // optional, if not set, for >v6.0.0, sdk will default to be production
 );
 
 app.listen(port, () => {
