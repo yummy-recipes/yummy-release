@@ -65,6 +65,10 @@ app.post("/", (req, res) => {
   const body = req.body;
   const signature = req.headers["gcms-signature"];
 
+  if (!signature) {
+    return res.status(401).send("Invalid signature");
+  }
+
   let isValid = false;
   try {
     assert(signature, "Missing signature");
