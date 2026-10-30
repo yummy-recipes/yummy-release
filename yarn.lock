@@ -1128,14 +1128,14 @@ side-channel@^1.0.4:
     object-inspect "^1.9.0"
 
 statsig-node@^6.5.1:
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/statsig-node/-/statsig-node-6.5.1.tgz#b553f100a851743704490b3479f2c508214d2b8b"
-  integrity sha512-/rKvMMN9SWTK8+b7MyRP1wOsStsKf55Mdj8O2ffV/bCQ/38bXYCC/GVd3gVvBSwVCibAnkTz2v1gpRJSIKsBIg==
+  version "6.5.2"
+  resolved "https://registry.yarnpkg.com/statsig-node/-/statsig-node-6.5.2.tgz#fdc06b9b355902f03e9462ec5309c76b348ae12b"
+  integrity sha512-frYju9kWvHc61SkjisIe7/d6GCZd0a3zrL1P88rJl1fD6JB73AnoAd9cd1GUNcECzDth7l4UzPGvlJykI9fBvg==
   dependencies:
     ip3country "^5.0.0"
     node-fetch "^2.7.0"
     ua-parser-js "^1.0.2"
-    uuid "^8.3.2"
+    uuid "^11.1.1"
 
 statuses@2.0.1:
   version "2.0.1"
@@ -1190,10 +1190,10 @@ utils-merge@1.0.1:
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
 
-uuid@^8.3.2:
-  version "8.3.2"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
-  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+uuid@^11.1.1:
+  version "11.1.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.1.tgz#f6d81d2e1c65d00762e5e29b16c5d2d995e208ad"
+  integrity sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==
 
 vary@~1.1.2:
   version "1.1.2"
